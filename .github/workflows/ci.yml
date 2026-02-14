@@ -1,24 +1,23 @@
 name: Build the CI job for nodejs application
+
 on:
   push:
     branches:
-      - ci-branch
-  pull_request:
-    branches:
-      - main
+      - ci-cd-branch
+  workflow_dispatch:
 
-
-jobs: 
+jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '14'
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
@@ -26,13 +25,11 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: list all the files and folder in build directory
-        run: ls 
+      - name: List files
+        run: ls -la
 
-      - name: Upload artifacts check the node js application path 
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nodejs-app-=artifacts
+          name: nodejs-app-artifacts
           path: ./
-
-
