@@ -36,14 +36,14 @@ jobs:
       # Copy new build
       - name: Copy new files to server directory
         run: |
-          sudo rm -rf /var/www/nodeapp/*
-          sudo cp -r artifact/* /var/www/nodeapp/
+         rm -rf /var/www/nodeapp/*
+         cp -r artifact/* /var/www/nodeapp/
 
       # Install dependencies
       - name: Install dependencies
         run: |
           cd /var/www/nodeapp
-          npm install --production
+          npm install --omit=dev
 
       # Start application (persistent)
       - name: Start application using PM2
