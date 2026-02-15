@@ -12,7 +12,6 @@ jobs:
     runs-on: self-hosted
 
     steps:
-
       - name: Download artifacts from CI
         uses: actions/download-artifact@v4
         with:
@@ -24,32 +23,30 @@ jobs:
       - name: Show downloaded files
         run: ls -R
 
-      # Create deployment folder (first time only)
       - name: Create app directory
         run: sudo mkdir -p /var/www/nodeapp
 
-      # Stop old app
       - name: Stop old app if running
-        run: |
-          pm2 delete nodeapp || true
+        run: pm2 delete nodeapp || true
 
-      # Copy new build
-      - name: Copy new files to server directory
+      - name: Copy new build
         run: |
-         rm -rf /var/www/nodeapp/*
-         cp -r artifact/* /var/www/nodeapp/
+          rm -rf /var/www/nodeapp/*
+          cp -r artifact/* /var/www/nodeapp/
 
-      # Install dependencies
-      - name: Install dependencies
-        run: |
-          cd /var/www/nodeapp
-          npm install --omit=dev
-
-      # Start application (persistent)
       - name: Start application using PM2
         run: |
           cd /var/www/nodeapp
-          pm2 start src/index.js --name nodeapp
+          pm2 delete nodeapp || true
+
+          if [ -d "dist" ]; then
+            pm2 start "serve -s dist -l 3000" --name nodeapp
+          fi
+
+          if [ -d "build" ]; then
+            pm2 start "serve -s build -l 3000" --name nodeapp
+          fi
+
           pm2 save
 
       - name: Deployment completed

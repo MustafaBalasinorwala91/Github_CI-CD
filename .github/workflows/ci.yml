@@ -15,40 +15,36 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # Install NodeJS
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
 
-      # Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Run tests (optional)
       - name: Run tests
-        run: npm test || echo "No tests configured"
+        run: npm test || echo "No tests"
 
-      # Build application (if build script exists)
-      - name: Build application
-        run: npm run build || echo "No build step"
+      - name: Build React app
+        run: npm run build
 
-      # Remove dev dependencies to reduce artifact size
-      - name: Prune dev dependencies
-        run: npm prune --production
+      # VERIFY BUILD EXISTS (IMPORTANT DEBUG STEP)
+      - name: Show build files
+        run: |
+          echo "Listing dist folder"
+          ls -R dist || true
+          echo "Listing build folder"
+          ls -R build || true
 
-      # Create deployment package
-      - name: Prepare deployment folder
+      - name: Prepare artifact
         run: |
           mkdir deploy-package
-          cp -r src deploy-package/ 2>/dev/null || true
-          cp -r dist deploy-package/ 2>/dev/null || true
-          cp package.json deploy-package/
-          cp package-lock.json deploy-package/ 2>/dev/null || true
+          if [ -d "dist" ]; then cp -r dist deploy-package/; fi
+          if [ -d "build" ]; then cp -r build deploy-package/; fi
 
-      # Upload artifact for CD
-      - name: Upload artifact for deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: nodejs-app-artifacts
