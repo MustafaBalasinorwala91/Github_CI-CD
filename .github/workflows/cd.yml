@@ -1,4 +1,4 @@
-name: Deploying the nodejs application to ec2 instance as runner in aws ap-south-1
+name: Deploying the node.js application to ec2 instance as runner in aws ap-south-1
 
 on:
   workflow_run:
