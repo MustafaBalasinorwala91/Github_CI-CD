@@ -1,0 +1,56 @@
+name: Deploying the nodejs application to ec2 instance as runner in aws ap-south-1
+
+on:
+  workflow_run:
+    workflows: ["Build the CI job for nodejs application"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy Node App to EC2
+    runs-on: self-hosted
+
+    steps:
+
+      - name: Download artifacts from CI
+        uses: actions/download-artifact@v4
+        with:
+          name: nodejs-app-artifacts
+          path: ./artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show downloaded files
+        run: ls -R
+
+      # Create deployment folder (first time only)
+      - name: Create app directory
+        run: sudo mkdir -p /var/www/nodeapp
+
+      # Stop old app
+      - name: Stop old app if running
+        run: |
+          pm2 delete nodeapp || true
+
+      # Copy new build
+      - name: Copy new files to server directory
+        run: |
+          sudo rm -rf /var/www/nodeapp/*
+          sudo cp -r artifact/* /var/www/nodeapp/
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          cd /var/www/nodeapp
+          npm install --production
+
+      # Start application (persistent)
+      - name: Start application using PM2
+        run: |
+          cd /var/www/nodeapp
+          pm2 start src/index.js --name nodeapp
+          pm2 save
+
+      - name: Deployment completed
+        run: echo "Application deployed successfully 🚀"

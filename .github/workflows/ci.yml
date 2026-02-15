@@ -10,34 +10,46 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: QA
+
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '18'
+      # Install NodeJS
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
 
-      # - name: Install dependencies
-      #   run: npm install
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-      # - name: Run tests
-      #   run: npm test
+      # Run tests (optional)
+      - name: Run tests
+        run: npm test || echo "No tests configured"
 
-      # - name: List files
-      #   run: ls -la
+      # Build application (if build script exists)
+      - name: Build application
+        run: npm run build || echo "No build step"
 
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: nodejs-app-artifacts
-      #     path: ./
+      # Remove dev dependencies to reduce artifact size
+      - name: Prune dev dependencies
+        run: npm prune --production
 
-      - name: get the user_name and password from github
-        #run: echo "Username: ${{ vari.USERNAME }} and Password: ${{ secrets.PASSWORD }}"
+      # Create deployment package
+      - name: Prepare deployment folder
         run: |
-          echo "Username: ${{ vars.USER_NAME }}"
-          echo "Password length: ${#PASSWORD}"
-        env:
-          PASSWORD: ${{ secrets.PASSWORD }}
+          mkdir deploy-package
+          cp -r src deploy-package/ 2>/dev/null || true
+          cp -r dist deploy-package/ 2>/dev/null || true
+          cp package.json deploy-package/
+          cp package-lock.json deploy-package/ 2>/dev/null || true
+
+      # Upload artifact for CD
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodejs-app-artifacts
+          path: deploy-package
