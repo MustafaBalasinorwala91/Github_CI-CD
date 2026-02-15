@@ -12,38 +12,40 @@ jobs:
     environment: QA
 
     steps:
+      # 1. Checkout code
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      # 2. Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: npm
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
+      # 4. Run tests (optional)
       - name: Run tests
-        run: npm test || echo "No tests"
+        run: npm test || echo "No tests configured"
 
-      - name: Build React app
+      # 5. Production build
+      - name: Build React application
         run: npm run build
 
-      # VERIFY BUILD EXISTS (IMPORTANT DEBUG STEP)
-      - name: Show build files
-        run: |
-          echo "Listing dist folder"
-          ls -R dist || true
-          echo "Listing build folder"
-          ls -R build || true
+      # 6. Verify build output
+      - name: Show dist folder
+        run: ls -R dist
 
-      - name: Prepare artifact
+      # 7. Create deployment artifact (ONLY dist)
+      - name: Prepare deployment package
         run: |
           mkdir deploy-package
-          if [ -d "dist" ]; then cp -r dist deploy-package/; fi
-          if [ -d "build" ]; then cp -r build deploy-package/; fi
+          cp -r dist deploy-package/
 
+      # 8. Upload artifact for CD workflow
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
